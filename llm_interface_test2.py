@@ -3,17 +3,25 @@ import anthropic
 import os
 from pinecone import Pinecone
 from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables from .env file
-
-
-# Load API key
-ant_api = os.getenv("ANTHROPIC_API_KEY")
-# Initialize Pinecone
 from pinecone import Pinecone
+from openai import OpenAI
+
+
+
+
+# Check Streamlit Secrets first
+ant_api = st.secrets["ANTHROPIC_API_KEY"] if "ANTHROPIC_API_KEY" in st.secrets else None
+pc_api = st.secrets["PINECONE_API_KEY"] if "PINECONE_API_KEY" in st.secrets else None
+oai_api = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else None
+
+# Fallback to .env for local testing
+if not all([ant_api, pc_api, oai_api]):
+    load_dotenv()
+    ant_api = os.getenv("ANTHROPIC_API_KEY")
+    pc_api = os.getenv("PINECONE_API_KEY")
+    oai_api = os.getenv("OPENAI_API_KEY")
 
 # Initialize Pinecone client
-pc_api=os.getenv("PINECONE_API_KEY")
 pc = Pinecone(api_key=pc_api)
 index_name = "domrag2"
 index = pc.Index(index_name)
@@ -21,10 +29,6 @@ index = pc.Index(index_name)
 # Initialize the Claude API client
 client_ant = anthropic.Anthropic(api_key=ant_api)
 
-
-from openai import OpenAI
-
-oai_api=os.getenv("OPENAI_API_KEY")
 
 client_open = OpenAI(api_key=oai_api)
 
